@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TON Wallet</title>
+</head>
+<body>
+    <h1>TON Wallet</h1>
+    <div>
+        <h2>Создать кошелек</h2>
+        <button id="createWallet">Создать</button>
+        <p id="keys"></p>
+    </div>
+    <div>
+        <h2>Отправить средства</h2>
+        <input type="text" id="recipient" placeholder="Адрес получателя">
+        <input type="number" id="amount" placeholder="Сумма">
+        <button id="sendFunds">Отправить</button>
+    </div>
+    <div>
+        <h2>Баланс</h2>
+        <button id="getBalance">Проверить баланс</button>
+        <p id="balance"></p>
+    </div>
+
+    <script>
+        document.getElementById('createWallet').onclick = async () => {
+            const response = await fetch('/create-wallet', { method: 'POST' });
+            const data = await response.json();
+            // Обновляем отображение приватного и публичного ключей
+            document.getElementById('keys').innerText = 
+                'Приватный ключ: ' + data.privateKey + '\n' +
+                'Публичный ключ: ' + data.publicKey;
+        };
+
+        document.getElementById('sendFunds').onclick = async () => {
+            const recipient = document.getElementById('recipient').value;
+            const amount = document.getElementById('amount').value;
+
+            try {
+                const response = await fetch('/send-funds', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ recipient, amount })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Ошибка сети: ' + response.statusText);
+                }
+
+                const data = await response.json();
+                alert(data.error || 'Средства отправлены!');
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка: ' + error.message);
+            }
+        };
+
+        document.getElementById('getBalance').onclick = async () => {
+            const response = await fetch('/balance');
+            const data = await response.json();
+            document.getElementById('balance').innerText = data.balance ? `Баланс: ${data.balance} TON` : data.error;
+        };
+    </script>
+</body>
+</html>
